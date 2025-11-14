@@ -23,7 +23,10 @@ const __dirname = path.dirname(__filename);
 // CORS (frontend URL)
 app.use(
   cors({
-    origin: ["https://fooddel-frontend.vercel.app"],
+      origin: [
+      "https://fooddel-frontend-xv4i.vercel.app",
+      "https://foodel-admin-9n9z.vercel.app"
+    ],
     credentials: true,
   })
 );
