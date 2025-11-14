@@ -15,7 +15,7 @@ import restaurantRouter from "./routes/restaurantRoute.js";
 
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 4000;
 
 // Resolve __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
