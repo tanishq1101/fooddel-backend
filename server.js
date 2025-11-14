@@ -6,24 +6,28 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { connectDB } from "../config/db.js";
-import foodRouter from "../routes/foodRoute.js";
-import userRouter from "../routes/userRoute.js";
-import cartRouter from "../routes/cartRoute.js";
-import orderRouter from "../routes/orderRoute.js";
-import restaurantAdminRouter from "../routes/restaurantAdminRoute.js";
-import restaurantRouter from "../routes/restaurantRoute.js";
+import { connectDB } from "./config/db.js";
+import foodRouter from "./routes/foodRoute.js";
+import userRouter from "./routes/userRoute.js";
+import cartRouter from "./routes/cartRoute.js";
+import orderRouter from "./routes/orderRoute.js";
+import restaurantAdminRouter from "./routes/restaurantAdminRoute.js";
+import restaurantRouter from "./routes/restaurantRoute.js";
 
 const app = express();
+const port = process.env.PORT || 4000;
 
-// Resolve __dirname for ES modules
+// Resolve __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// CORS – allow your frontend
+// CORS for localhost frontend
 app.use(
   cors({
-    origin: ["https://fooddel-frontend.vercel.app"], // change to your frontend domain
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173"
+    ],
     credentials: true,
   })
 );
@@ -31,13 +35,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files for uploads
-app.use("/images", express.static(path.join(__dirname, "../uploads")));
+// Static folder for image uploads
+app.use("/images", express.static(path.join(__dirname, "./uploads")));
 
-// Connect to DB
+// Connect DB
 connectDB();
 
-// API Routes
+// API routes
 app.use("/api/food", foodRouter);
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
@@ -45,11 +49,12 @@ app.use("/api/order", orderRouter);
 app.use("/api/restaurant", restaurantRouter);
 app.use("/api/admin/restaurants", restaurantAdminRouter);
 
-// Health check
+// Health route
 app.get("/", (req, res) => {
-  res.send("Backend API is running on Vercel!");
+  res.send("Local Backend Server Running on http://localhost:4000");
 });
 
-// ❗ NO app.listen() on Vercel!!
-// Instead we EXPORT the app for serverless use
-export default app;
+// Enable local server (NOT for Vercel)
+app.listen(port, () => {
+  console.log(`🚀 Local backend running at http://localhost:${port}`);
+});
