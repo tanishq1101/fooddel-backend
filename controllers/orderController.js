@@ -3,10 +3,14 @@ import userModel from "../models/userModel.js";
 import "dotenv/config";
 import Stripe from "stripe";
 
-
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Auto-switch frontend URL based on environment
+const isDev = process.env.NODE_ENV !== "production";
+
+const FRONTEND_URL = isDev
+  ? "http://localhost:5173"
+  : "https://fooddel-frontend-xv4i.vercel.app";
 
 // -------------------- USER --------------------
 
@@ -29,17 +33,16 @@ const createCheckoutSession = async (req, res) => {
       line_items,
       mode: "payment",
 
-      // ✅ SUCCESS + FAIL URLS (hardcoded for localhost)
-      success_url: `http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:5173/payment-failed`,
+      // Auto-switch URLs
+      success_url: `${FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/payment-failed`,
 
       metadata: {
         userId,
-        address: JSON.stringify(address).slice(0, 499)
-      }
+        address: JSON.stringify(address).slice(0, 499),
+      },
     });
 
-    // ✅ Correct Response
     return res.json({ success: true, url: session.url });
 
   } catch (error) {
@@ -48,7 +51,7 @@ const createCheckoutSession = async (req, res) => {
   }
 };
 
-// save order:
+// -------------------- SAVE ORDER AFTER PAYMENT --------------------
 
 const saveOrderAfterPayment = async (req, res) => {
   try {
@@ -87,13 +90,10 @@ const saveOrderAfterPayment = async (req, res) => {
   }
 };
 
+// -------------------- COD ORDER --------------------
 
-// Place an order (COD)
 const placeOrder = async (req, res) => {
   try {
-    console.log("REQ.USER:", req.user);
-    console.log("REQ.BODY:", req.body);
-
     const userId = req.user.id;
 
     const newOrder = new orderModel({
@@ -113,13 +113,15 @@ const placeOrder = async (req, res) => {
       message: "Order placed successfully (Cash on Delivery)",
       orderId: newOrder._id,
     });
+
   } catch (error) {
     console.log("Place order error:", error);
     res.json({ success: false, message: "Error placing order" });
   }
 };
 
-// Verify order manually (COD confirmation)
+// -------------------- VERIFY ORDER --------------------
+
 const verifyOrder = async (req, res) => {
   const { orderId, success } = req.body;
   try {
@@ -139,7 +141,8 @@ const verifyOrder = async (req, res) => {
   }
 };
 
-// Get orders for a specific user
+// -------------------- USER ORDERS --------------------
+
 const userOrders = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -151,8 +154,8 @@ const userOrders = async (req, res) => {
   }
 };
 
-// -------------------- ADMIN --------------------
-// List all orders
+// -------------------- ADMIN FUNCTIONS --------------------
+
 const listOrders = async (req, res) => {
   try {
     const orders = await orderModel.find().sort({ createdAt: -1 });
@@ -163,7 +166,6 @@ const listOrders = async (req, res) => {
   }
 };
 
-// Update order status
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
@@ -174,28 +176,25 @@ const updateStatus = async (req, res) => {
     res.json({ success: false, message: "Error updating order status" });
   }
 };
-// -------------------- ADMIN DELETE ORDER --------------------
 
 const adminDeleteOrder = async (req, res) => {
   try {
-    console.log("🧾 ADMIN DELETE REQUEST RECEIVED");
     const { orderId } = req.params;
 
     const order = await orderModel.findById(orderId);
     if (!order) {
-      console.log("❌ Order not found");
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     await orderModel.findByIdAndDelete(orderId);
-    console.log("✅ Order deleted successfully:", orderId);
 
     return res.status(200).json({
       success: true,
       message: "Order deleted successfully by admin",
     });
+
   } catch (error) {
-    console.error("❌ Error deleting order (admin):", error);
+    console.error("Error deleting order (admin):", error);
     return res.status(500).json({
       success: false,
       message: "Server error deleting order (admin)",
@@ -203,41 +202,36 @@ const adminDeleteOrder = async (req, res) => {
   }
 };
 
-
-
-
 // -------------------- DELETE ORDER --------------------
 
 const deleteOrder = async (req, res) => {
   try {
-    console.log("🧾 DELETE REQUEST RECEIVED");
-    console.log("Headers:", req.headers.authorization);
-    console.log("User from token:", req.user);
-    console.log("OrderId param:", req.params.orderId);
-
     const userId = req.user.id;
     const { orderId } = req.params;
 
     const order = await orderModel.findById(orderId);
     if (!order) {
-      console.log("❌ Order not found");
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    // ✅ Remove restriction so users can delete any of their orders (even if status pending/placed)
-    // If you ever want to restrict again, just uncomment below:
-    // if (order.userId.toString() !== userId) {
-    //   return res.status(403).json({ success: false, message: "Unauthorized to delete this order" });
-    // }
-
     await orderModel.findByIdAndDelete(orderId);
-    console.log("✅ Order deleted:", orderId);
 
     return res.status(200).json({ success: true, message: "Order deleted successfully" });
+
   } catch (error) {
-    console.error("❌ Error deleting order:", error);
+    console.error("Error deleting order:", error);
     return res.status(500).json({ success: false, message: "Server error deleting order" });
   }
 };
 
-export {createCheckoutSession, saveOrderAfterPayment, placeOrder, verifyOrder, userOrders, listOrders, updateStatus, deleteOrder, adminDeleteOrder };
+export {
+  createCheckoutSession,
+  saveOrderAfterPayment,
+  placeOrder,
+  verifyOrder,
+  userOrders,
+  listOrders,
+  updateStatus,
+  deleteOrder,
+  adminDeleteOrder,
+};
