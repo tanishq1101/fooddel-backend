@@ -5,10 +5,11 @@ import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Auto-switch frontend URL based on environment
-const isDev = process.env.NODE_ENV !== "production";
+const FRONTEND_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL_LOCAL;
 
-const FRONTEND_URL = "https://fooddel-frontend-xv4i.vercel.app";
 
 // -------------------- USER --------------------
 
