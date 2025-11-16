@@ -21,16 +21,19 @@ const port = process.env.PORT || 4000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// CORS for localhost frontend
+// CORS for:
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://127.0.0.1:5173"
+      "http://localhost:5174",
+      "https://fooddel-frontend-xv4i.vercel.app",
+      "https://foodel-admin-9n9z.vercel.app"
     ],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
