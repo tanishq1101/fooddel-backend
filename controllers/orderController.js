@@ -8,9 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Auto-switch frontend URL based on environment
 const isDev = process.env.NODE_ENV !== "production";
 
-const FRONTEND_URL = isDev
-  ? "http://localhost:5173"
-  : "https://fooddel-frontend-xv4i.vercel.app";
+const FRONTEND_URL = "https://fooddel-frontend-xv4i.vercel.app";
 
 // -------------------- USER --------------------
 
